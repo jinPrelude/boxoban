@@ -31,7 +31,7 @@ Path resolution priority:
 
 ```python
 import gymnasium as gym
-import boxoban_gym  # registers env IDs on import
+import boxoban  # registers env IDs on import
 
 env = gym.make("Boxoban-hard-v0", disable_env_checker=True)
 obs, info = env.reset(seed=0)

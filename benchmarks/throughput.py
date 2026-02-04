@@ -6,7 +6,7 @@ import time
 import gymnasium as gym
 import numpy as np
 
-import boxoban_gym  # noqa: F401
+import boxoban  # noqa: F401
 
 
 def benchmark_single(env_id: str, level_root: str | None, steps: int) -> float:

@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from boxoban_gym.colors import PLAYER
-from boxoban_gym.env import BoxobanEnv
+from boxoban.colors import PLAYER
+from boxoban.env import BoxobanEnv
 
 
 def _player_position(obs: np.ndarray) -> tuple[int, int]:

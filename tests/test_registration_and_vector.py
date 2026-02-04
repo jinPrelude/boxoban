@@ -6,7 +6,7 @@ import gymnasium as gym
 import numpy as np
 import pytest
 
-import boxoban_gym  # noqa: F401
+import boxoban  # noqa: F401
 
 
 REGISTERED_ENV_IDS = [

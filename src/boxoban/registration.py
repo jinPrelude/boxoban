@@ -54,6 +54,6 @@ def register_envs() -> None:
             continue
         register(
             id=env_id,
-            entry_point="boxoban_gym.env:BoxobanEnv",
+            entry_point="boxoban.env:BoxobanEnv",
             kwargs=kwargs,
         )

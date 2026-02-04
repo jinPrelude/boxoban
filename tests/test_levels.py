@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from boxoban_gym.levels import count_levels, resolve_level_root
+from boxoban.levels import count_levels, resolve_level_root
 
 
 def test_mini_dataset_counts(mini_boxoban_root: Path) -> None:

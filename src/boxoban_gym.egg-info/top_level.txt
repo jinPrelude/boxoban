@@ -1,1 +1,0 @@
-boxoban_gym
