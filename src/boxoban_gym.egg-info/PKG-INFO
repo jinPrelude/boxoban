@@ -1,3 +1,23 @@
+Metadata-Version: 2.4
+Name: boxoban-gym
+Version: 0.1.0
+Summary: Gymnasium environments for DeepMind Boxoban levels
+Author: boxoban-gym contributors
+License: Apache-2.0
+Keywords: reinforcement-learning,gymnasium,sokoban,boxoban
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: gymnasium>=1.0
+Requires-Dist: numpy>=1.24
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
 # boxoban-gym
 
 Gymnasium environments for the DeepMind Boxoban level dataset.
