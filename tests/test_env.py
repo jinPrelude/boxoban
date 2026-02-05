@@ -110,3 +110,24 @@ def test_reset_level_idx_and_seed_reproducibility(mini_boxoban_root: Path) -> No
     assert sequence1 == sequence2
     env1.close()
     env2.close()
+
+
+def test_fixed_level_idx(mini_boxoban_root: Path) -> None:
+    env = BoxobanEnv(
+        level_set="medium",
+        split="train",
+        level_root=str(mini_boxoban_root),
+        fixed_level_idx=1,
+    )
+    for _ in range(3):
+        _, info = env.reset()
+        assert info["level_idx"] == 1
+    env.close()
+
+    with pytest.raises(ValueError):
+        BoxobanEnv(
+            level_set="medium",
+            split="train",
+            level_root=str(mini_boxoban_root),
+            fixed_level_idx=5,
+        )

@@ -26,6 +26,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         level_set: str,
         split: str | None = None,
         level_root: str | os.PathLike[str] | None = None,
+        fixed_level_idx: int | None = None,
         max_steps: int = 120,
         step_penalty: float = -0.1,
         box_on_target_reward: float = 1.0,
@@ -52,6 +53,14 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             split=split,
             level_root=level_root,
         )
+        if fixed_level_idx is not None:
+            fixed_level_idx = int(fixed_level_idx)
+            if fixed_level_idx < 0 or fixed_level_idx >= self._levels.num_levels:
+                raise ValueError(
+                    f"fixed_level_idx must be in [0, {self._levels.num_levels - 1}], "
+                    f"got {fixed_level_idx}"
+                )
+        self._fixed_level_idx = fixed_level_idx
         self._sampling_mode = "random" if split == "train" else "sequential"
         self._seed_on_first_reset = seed
 
@@ -181,7 +190,13 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
     def close(self) -> None:
         return None
 
+    @property
+    def num_levels(self) -> int:
+        return self._levels.num_levels
+
     def _select_level_idx(self, options: dict[str, Any] | None) -> int:
+        if self._fixed_level_idx is not None:
+            return self._fixed_level_idx
         if options is not None and "level_idx" in options:
             level_idx = int(options["level_idx"])
             if level_idx < 0 or level_idx >= self._levels.num_levels:

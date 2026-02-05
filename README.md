@@ -55,7 +55,7 @@ If you already cloned without `--recursive`, initialize the submodule manually:
 git submodule update --init --recursive
 ```
 
-### Optional: pygame for interactive play
+### Optional: pygame for interactive play ([play.py](play.py))
 
 ```bash
 pip install pygame
@@ -91,6 +91,37 @@ pip install pygame
 ### Episode Termination
 - Terminated: All boxes on targets
 - Truncated: Max steps reached (default: 120)
+
+## Training and Evaluation
+
+### Level Sampling Behavior
+
+The environment automatically adjusts level sampling based on the split:
+
+| Split | Sampling Mode | Behavior |
+|-------|--------------|----------|
+| `train` | Random | Levels sampled randomly with `np_random` |
+| `valid`, `test`, or none | Sequential | Levels iterated in order (0, 1, 2, ...) |
+
+### Fixed Level for Debugging
+
+Use `fixed_level_idx` to lock the environment to a specific level:
+
+```python
+# Always use level 42
+env = gym.make("Boxoban-hard-v0", fixed_level_idx=42)
+```
+### Per-Reset Level Selection
+
+You can also select a level dynamically via `reset()` options:
+
+```python
+env = gym.make("Boxoban-medium-train-v0")
+obs, info = env.reset(options={"level_idx": 100})  # Use level 100 for this episode
+```
+
+Note: `fixed_level_idx` takes priority over `options["level_idx"]`.
+
 
 ## Dataset Path Resolution
 
