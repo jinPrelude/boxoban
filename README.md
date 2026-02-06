@@ -41,19 +41,13 @@ vec_env = gym.make_vec(
 
 ## Installation
 
-Clone with `--recursive` to include the [boxoban-levels](https://github.com/google-deepmind/boxoban-levels) submodule:
-
 ```bash
-git clone --recursive https://github.com/YOUR_USERNAME/boxoban-gym.git
+git clone https://github.com/YOUR_USERNAME/boxoban-gym.git
 cd boxoban-gym
 pip install -e .
 ```
 
-If you already cloned without `--recursive`, initialize the submodule manually:
-
-```bash
-git submodule update --init --recursive
-```
+For installation convenience, this repository includes the [`boxoban-levels`](https://github.com/google-deepmind/boxoban-levels) contents directly instead of using a git submodule.
 
 ### Optional: pygame for interactive play ([play.py](play.py))
 
