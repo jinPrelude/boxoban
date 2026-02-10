@@ -33,7 +33,7 @@ def test_registered_envs_can_be_created(env_id: str, mini_boxoban_root: Path) ->
         disable_env_checker=True,
     )
     obs, _ = env.reset(seed=0)
-    assert obs.shape == (10, 10, 3)
+    assert obs.shape == (80, 80, 3)
     env.close()
 
 
@@ -55,12 +55,12 @@ def test_make_vec_sync_async(mode: str, mini_boxoban_root: Path) -> None:
         vec_env = gym.make_vec("Boxoban-medium-train-v0", **kwargs)
 
     obs, _ = vec_env.reset(seed=0)
-    assert obs.shape == (4, 10, 10, 3)
+    assert obs.shape == (4, 80, 80, 3)
 
     actions = np.array([0, 1, 2, 3], dtype=np.int64)
     obs, reward, terminated, truncated, _ = vec_env.step(actions)
 
-    assert obs.shape == (4, 10, 10, 3)
+    assert obs.shape == (4, 80, 80, 3)
     assert reward.shape == (4,)
     assert terminated.shape == (4,)
     assert truncated.shape == (4,)

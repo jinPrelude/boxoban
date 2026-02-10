@@ -75,7 +75,7 @@ pip install pygame
 ## Environment Details
 
 ### Observation Space
-- Shape: `(10, 10, 3)` uint8
+- Shape: `(80, 80, 3)` uint8 (default `obs_size=80`; must be a multiple of 10)
 
 ### Action Space
 - **v0** — `Discrete(4)`: 0=up, 1=down, 2=left, 3=right

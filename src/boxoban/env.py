@@ -34,12 +34,17 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         solve_reward: float = 10.0,
         seed: int | None = None,
         render_mode: str | None = None,
+        obs_size: int = 80,
     ) -> None:
         super().__init__()
         if render_mode not in (None, "rgb_array"):
             raise ValueError("render_mode must be None or 'rgb_array'")
         if max_steps <= 0:
             raise ValueError("max_steps must be > 0")
+        if obs_size % GRID_SIZE != 0:
+            raise ValueError(
+                f"obs_size must be a multiple of {GRID_SIZE}, got {obs_size}"
+            )
 
         self.render_mode = render_mode
         self.max_steps = int(max_steps)
@@ -47,6 +52,9 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         self.box_on_target_reward = float(box_on_target_reward)
         self.box_off_target_penalty = float(box_off_target_penalty)
         self.solve_reward = float(solve_reward)
+
+        self._obs_size = int(obs_size)
+        self._pixel_size = self._obs_size // GRID_SIZE
 
         self._levels = get_level_collection(
             level_set=level_set,
@@ -67,7 +75,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=(GRID_SIZE, GRID_SIZE, 3),
+            shape=(self._obs_size, self._obs_size, 3),
             dtype=np.uint8,
         )
         self.action_space = spaces.Discrete(4)
@@ -77,7 +85,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         self._boxes = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.bool_)
         self._overlap = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.bool_)
         self._player = np.zeros(2, dtype=np.int8)
-        self._obs = np.empty((GRID_SIZE, GRID_SIZE, 3), dtype=np.uint8)
+        self._obs = np.empty((self._obs_size, self._obs_size, 3), dtype=np.uint8)
 
         self._level_idx = -1
         self._next_level_idx = 0
@@ -213,34 +221,33 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         return level_idx
 
     def _render_full_observation(self) -> None:
-        self._obs[:, :] = BACKGROUND
-        self._obs[self._walls] = WALL
-        self._obs[self._goals] = GOAL
-        self._obs[self._boxes] = BOX
+        ps = self._pixel_size
+        mini = np.empty((GRID_SIZE, GRID_SIZE, 3), dtype=np.uint8)
+        mini[:, :] = BACKGROUND
+        mini[self._walls] = WALL
+        mini[self._goals] = GOAL
+        mini[self._boxes] = BOX
         np.logical_and(self._boxes, self._goals, out=self._overlap)
-        self._obs[self._overlap] = BOX_ON_GOAL
-        self._obs[int(self._player[0]), int(self._player[1])] = PLAYER
+        mini[self._overlap] = BOX_ON_GOAL
+        mini[int(self._player[0]), int(self._player[1])] = PLAYER
+        if ps == 1:
+            self._obs[:] = mini
+        else:
+            self._obs[:] = np.repeat(np.repeat(mini, ps, axis=0), ps, axis=1)
 
     def _paint_cell(self, y: int, x: int) -> None:
+        ps = self._pixel_size
         if self._walls[y, x]:
-            self._obs[y, x] = WALL
-            return
-
-        if int(self._player[0]) == y and int(self._player[1]) == x:
-            self._obs[y, x] = PLAYER
-            return
-
-        if self._boxes[y, x]:
-            if self._goals[y, x]:
-                self._obs[y, x] = BOX_ON_GOAL
-            else:
-                self._obs[y, x] = BOX
-            return
-
-        if self._goals[y, x]:
-            self._obs[y, x] = GOAL
+            color = WALL
+        elif int(self._player[0]) == y and int(self._player[1]) == x:
+            color = PLAYER
+        elif self._boxes[y, x]:
+            color = BOX_ON_GOAL if self._goals[y, x] else BOX
+        elif self._goals[y, x]:
+            color = GOAL
         else:
-            self._obs[y, x] = BACKGROUND
+            color = BACKGROUND
+        self._obs[y * ps:(y + 1) * ps, x * ps:(x + 1) * ps] = color
 
     def _info(self, *, is_success: bool) -> dict[str, Any]:
         return {

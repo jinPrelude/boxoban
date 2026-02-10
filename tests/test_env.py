@@ -9,17 +9,22 @@ from boxoban.colors import PLAYER
 from boxoban.env import BoxobanEnv, BoxobanNoopEnv
 
 
+_DEFAULT_OBS_SIZE = 80
+_PIXEL_SIZE = _DEFAULT_OBS_SIZE // 10
+
+
 def _player_position(obs: np.ndarray) -> tuple[int, int]:
+    """Return the grid-level (y, x) position of the player."""
     hits = np.argwhere(np.all(obs == PLAYER, axis=-1))
-    assert hits.shape[0] == 1
-    return int(hits[0, 0]), int(hits[0, 1])
+    assert hits.shape[0] >= 1
+    return int(hits[0, 0]) // _PIXEL_SIZE, int(hits[0, 1]) // _PIXEL_SIZE
 
 
 def test_observation_space(mini_boxoban_root: Path) -> None:
     env = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
     obs, info = env.reset(seed=0, options={"level_idx": 0})
 
-    assert obs.shape == (10, 10, 3)
+    assert obs.shape == (_DEFAULT_OBS_SIZE, _DEFAULT_OBS_SIZE, 3)
     assert obs.dtype == np.uint8
     assert env.observation_space.contains(obs)
     assert info["level_idx"] == 0
