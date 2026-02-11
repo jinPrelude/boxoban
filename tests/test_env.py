@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from boxoban.colors import PLAYER
-from boxoban.env import BoxobanEnv, BoxobanNoopEnv
+from boxoban.env import BoxobanEnv
 
 
 _DEFAULT_OBS_SIZE = 80
@@ -138,14 +138,14 @@ def test_fixed_level_idx(mini_boxoban_root: Path) -> None:
         )
 
 
-def test_noop_env_action_space(mini_boxoban_root: Path) -> None:
-    env = BoxobanNoopEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
+def test_noop_action_space(mini_boxoban_root: Path) -> None:
+    env = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root), noop_action=True)
     assert env.action_space.n == 5
     env.close()
 
 
 def test_noop_action_does_not_move(mini_boxoban_root: Path) -> None:
-    env = BoxobanNoopEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
+    env = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root), noop_action=True)
     obs, _ = env.reset(seed=0, options={"level_idx": 0})
     assert _player_position(obs) == (1, 1)
 
@@ -160,9 +160,9 @@ def test_noop_action_does_not_move(mini_boxoban_root: Path) -> None:
     env.close()
 
 
-def test_noop_env_movement_actions(mini_boxoban_root: Path) -> None:
+def test_noop_movement_actions(mini_boxoban_root: Path) -> None:
     # Action 1 = up on wall_collision level (player at 1,1, wall above)
-    env = BoxobanNoopEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
+    env = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root), noop_action=True)
     env.reset(seed=0, options={"level_idx": 0})
 
     _, reward, terminated, truncated, info = env.step(1)  # up -> wall
@@ -173,7 +173,7 @@ def test_noop_env_movement_actions(mini_boxoban_root: Path) -> None:
     env.close()
 
     # Action 4 = right on push_on_off_goal level (pushes box onto goal)
-    env2 = BoxobanNoopEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
+    env2 = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root), noop_action=True)
     env2.reset(seed=0, options={"level_idx": 1})
 
     _, reward_on, terminated, truncated, info = env2.step(4)  # right
@@ -184,12 +184,13 @@ def test_noop_env_movement_actions(mini_boxoban_root: Path) -> None:
     env2.close()
 
 
-def test_noop_env_truncation(mini_boxoban_root: Path) -> None:
-    env = BoxobanNoopEnv(
+def test_noop_truncation(mini_boxoban_root: Path) -> None:
+    env = BoxobanEnv(
         level_set="medium",
         split="train",
         level_root=str(mini_boxoban_root),
         max_steps=1,
+        noop_action=True,
     )
     env.reset(seed=0, options={"level_idx": 0})
     _, _, terminated, truncated, _ = env.step(0)  # noop
@@ -198,31 +199,12 @@ def test_noop_env_truncation(mini_boxoban_root: Path) -> None:
     env.close()
 
 
-def test_noop_env_invalid_action(mini_boxoban_root: Path) -> None:
-    env = BoxobanNoopEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root))
+def test_noop_invalid_action(mini_boxoban_root: Path) -> None:
+    env = BoxobanEnv(level_set="medium", split="train", level_root=str(mini_boxoban_root), noop_action=True)
     env.reset(seed=0, options={"level_idx": 0})
 
     with pytest.raises(ValueError):
         env.step(5)
     with pytest.raises(ValueError):
         env.step(-1)
-    env.close()
-
-
-@pytest.mark.parametrize("noop_penalty", [0.0, -0.01, -0.5])
-def test_noop_custom_penalty(mini_boxoban_root: Path, noop_penalty: float) -> None:
-    env = BoxobanNoopEnv(
-        level_set="medium",
-        split="train",
-        level_root=str(mini_boxoban_root),
-        noop_penalty=noop_penalty,
-    )
-    env.reset(seed=0, options={"level_idx": 0})
-
-    _, reward, _, _, _ = env.step(0)  # noop
-    assert reward == pytest.approx(noop_penalty)
-
-    # movement action should still use step_penalty (-0.1)
-    _, reward_move, _, _, _ = env.step(1)  # up -> wall
-    assert reward_move == pytest.approx(-0.1)
     env.close()

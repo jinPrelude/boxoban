@@ -16,12 +16,6 @@ REGISTERED_ENV_IDS = [
     "Boxoban-unfiltered-valid-v0",
     "Boxoban-unfiltered-test-v0",
     "Boxoban-hard-v0",
-    "Boxoban-medium-train-v1",
-    "Boxoban-medium-valid-v1",
-    "Boxoban-unfiltered-train-v1",
-    "Boxoban-unfiltered-valid-v1",
-    "Boxoban-unfiltered-test-v1",
-    "Boxoban-hard-v1",
 ]
 
 

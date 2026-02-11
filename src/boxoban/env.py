@@ -35,6 +35,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         seed: int | None = None,
         render_mode: str | None = None,
         obs_size: int = 80,
+        noop_action: bool = False,
     ) -> None:
         super().__init__()
         if render_mode not in (None, "rgb_array"):
@@ -52,6 +53,8 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         self.box_on_target_reward = float(box_on_target_reward)
         self.box_off_target_penalty = float(box_off_target_penalty)
         self.solve_reward = float(solve_reward)
+
+        self.noop_action = bool(noop_action)
 
         self._obs_size = int(obs_size)
         self._pixel_size = self._obs_size // GRID_SIZE
@@ -78,7 +81,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             shape=(self._obs_size, self._obs_size, 3),
             dtype=np.uint8,
         )
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(5 if self.noop_action else 4)
 
         self._walls = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.bool_)
         self._goals = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.bool_)
@@ -125,11 +128,26 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         action: int,
     ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         action_int = int(action)
-        if action_int < 0 or action_int >= 4:
-            raise ValueError(f"Action must be in [0, 3], got {action!r}")
+        num_actions = 5 if self.noop_action else 4
+        if action_int < 0 or action_int >= num_actions:
+            raise ValueError(
+                f"Action must be in [0, {num_actions - 1}], got {action!r}"
+            )
+
+        if self.noop_action and action_int == 0:
+            reward = self.step_penalty
+            self._steps += 1
+            is_success = self._boxes_on_target == self._target_count
+            if is_success:
+                reward += self.solve_reward
+            terminated = bool(is_success)
+            truncated = self._steps >= self.max_steps
+            return self._obs, reward, terminated, truncated, self._info(is_success=is_success)
+
+        move_action = action_int - 1 if self.noop_action else action_int
 
         reward = self.step_penalty
-        dy, dx = _ACTION_TO_DELTA[action_int]
+        dy, dx = _ACTION_TO_DELTA[move_action]
 
         old_py = int(self._player[0])
         old_px = int(self._player[1])
@@ -256,35 +274,3 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             "is_success": is_success,
             "steps": self._steps,
         }
-
-
-class BoxobanNoopEnv(BoxobanEnv):
-    """BoxobanEnv variant with noop as action 0.
-
-    Action space: Discrete(5) — 0=noop, 1=up, 2=down, 3=left, 4=right
-    """
-
-    def __init__(self, *, noop_penalty: float | None = None, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.action_space = spaces.Discrete(5)
-        self.noop_penalty = noop_penalty if noop_penalty is not None else self.step_penalty
-
-    def step(
-        self,
-        action: int,
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
-        action_int = int(action)
-        if action_int < 0 or action_int >= 5:
-            raise ValueError(f"Action must be in [0, 4], got {action!r}")
-
-        if action_int == 0:
-            reward = self.noop_penalty
-            self._steps += 1
-            is_success = self._boxes_on_target == self._target_count
-            if is_success:
-                reward += self.solve_reward
-            terminated = bool(is_success)
-            truncated = self._steps >= self.max_steps
-            return self._obs, reward, terminated, truncated, self._info(is_success=is_success)
-
-        return super().step(action_int - 1)

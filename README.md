@@ -65,12 +65,6 @@ pip install pygame
 | `Boxoban-unfiltered-train-v0` | unfiltered | train | 900,000 | Discrete(4) |
 | `Boxoban-unfiltered-valid-v0` | unfiltered | valid | 10,000 | Discrete(4) |
 | `Boxoban-unfiltered-test-v0` | unfiltered | test | 1,000 | Discrete(4) |
-| `Boxoban-hard-v1` | hard | - | 3,332 | Discrete(5) |
-| `Boxoban-medium-train-v1` | medium | train | 450,000 | Discrete(5) |
-| `Boxoban-medium-valid-v1` | medium | valid | 5,000 | Discrete(5) |
-| `Boxoban-unfiltered-train-v1` | unfiltered | train | 900,000 | Discrete(5) |
-| `Boxoban-unfiltered-valid-v1` | unfiltered | valid | 10,000 | Discrete(5) |
-| `Boxoban-unfiltered-test-v1` | unfiltered | test | 1,000 | Discrete(5) |
 
 ## Environment Details
 
@@ -78,8 +72,8 @@ pip install pygame
 - Shape: `(80, 80, 3)` uint8 (default `obs_size=80`; must be a multiple of 10)
 
 ### Action Space
-- **v0** — `Discrete(4)`: 0=up, 1=down, 2=left, 3=right
-- **v1** — `Discrete(5)`: 0=noop, 1=up, 2=down, 3=left, 4=right
+- Default — `Discrete(4)`: 0=up, 1=down, 2=left, 3=right
+- With `noop_action=True` — `Discrete(5)`: 0=noop, 1=up, 2=down, 3=left, 4=right
 
 ### Rewards
 | Event | Reward |
