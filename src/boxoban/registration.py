@@ -20,4 +20,5 @@ def register_envs() -> None:
             id=env_id,
             entry_point=entry_point,
             kwargs=kwargs,
+            max_episode_steps=120,
         )

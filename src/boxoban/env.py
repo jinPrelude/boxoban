@@ -27,7 +27,6 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         split: str | None = None,
         level_root: str | os.PathLike[str] | None = None,
         fixed_level_idx: int | None = None,
-        max_steps: int = 120,
         step_penalty: float = -0.1,
         box_on_target_reward: float = 1.0,
         box_off_target_penalty: float = -1.0,
@@ -40,15 +39,12 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
         super().__init__()
         if render_mode not in (None, "rgb_array"):
             raise ValueError("render_mode must be None or 'rgb_array'")
-        if max_steps <= 0:
-            raise ValueError("max_steps must be > 0")
         if obs_size % GRID_SIZE != 0:
             raise ValueError(
                 f"obs_size must be a multiple of {GRID_SIZE}, got {obs_size}"
             )
 
         self.render_mode = render_mode
-        self.max_steps = int(max_steps)
         self.step_penalty = float(step_penalty)
         self.box_on_target_reward = float(box_on_target_reward)
         self.box_off_target_penalty = float(box_off_target_penalty)
@@ -141,8 +137,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             if is_success:
                 reward += self.solve_reward
             terminated = bool(is_success)
-            truncated = self._steps >= self.max_steps
-            return self._obs, reward, terminated, truncated, self._info(is_success=is_success)
+            return self._obs, reward, terminated, False, self._info(is_success=is_success)
 
         move_action = action_int - 1 if self.noop_action else action_int
 
@@ -198,7 +193,6 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             reward += self.solve_reward
 
         terminated = bool(is_success)
-        truncated = self._steps >= self.max_steps
 
         self._paint_cell(old_py, old_px)
         if pushed:
@@ -206,7 +200,7 @@ class BoxobanEnv(gym.Env[np.ndarray, int]):
             self._paint_cell(box_to_y, box_to_x)
         self._paint_cell(int(self._player[0]), int(self._player[1]))
 
-        return self._obs, reward, terminated, truncated, self._info(is_success=is_success)
+        return self._obs, reward, terminated, False, self._info(is_success=is_success)
 
     def render(self) -> np.ndarray | None:
         if self.render_mode == "rgb_array":
